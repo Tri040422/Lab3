@@ -20,8 +20,9 @@ const Header = ({ totalItems, togglePopup }) => {
               <a className="nav-link" href="#">Contact</a>
             </li>
           </ul>
-          <button className="btn btn-danger" onClick={togglePopup}>
-            <i className='fa fa-shopping-cart'></i> {totalItems}
+          <button className="btn btn-danger position-relative" onClick={togglePopup}>
+            <i className='fa fa-shopping-cart'></i>
+            {totalItems > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{totalItems}</span>}
           </button>
         </div>
       </div>

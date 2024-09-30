@@ -1,32 +1,27 @@
 import React from 'react';
 
-const SelectedItemsPopup = ({ cart, updateQuantity, closePopup }) => {
+const SelectedItemsPopup = ({ cart, onClose, onQuantityChange }) => {
   return (
-    <div className="modal show" style={{ display: 'block' }} onClick={closePopup}>
-      <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="modal show" style={{ display: 'block', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+      <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Your Cart</h5>
-            <button type="button" className="btn-close" onClick={closePopup}></button>
+            <h5 className="modal-title">Selected Items</h5>
+            <button type="button" className="btn-close" onClick={onClose}></button>
           </div>
           <div className="modal-body">
-            {cart.length === 0 ? (
-              <p>Your cart is empty.</p>
-            ) : (
-              cart.map(item => (
-                <div key={item.id} className="d-flex justify-content-between">
-                  <span>{item.name} (${item.price})</span>
-                  <div>
-                    <button onClick={() => updateQuantity(item.id, -1)} className="btn btn-sm btn-danger">-</button>
-                    <span className="mx-2">{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.id, 1)} className="btn btn-sm btn-success">+</button>
-                  </div>
+            {Object.values(cart).map(item => (
+              <div key={item.id} className="d-flex justify-content-between align-items-center">
+                <div>{item.title} - ${item.price} x {item.count}</div>
+                <div>
+                  <button className="btn btn-sm btn-secondary" onClick={() => onQuantityChange(item.id, -1)}>-</button>
+                  <button className="btn btn-sm btn-secondary" onClick={() => onQuantityChange(item.id, 1)}>+</button>
                 </div>
-              ))
-            )}
+              </div>
+            ))}
           </div>
           <div className="modal-footer">
-            <button type="button" className="btn btn-secondary" onClick={closePopup}>Close</button>
+            <button type="button" className="btn btn-secondary" onClick={onClose}>Close</button>
           </div>
         </div>
       </div>

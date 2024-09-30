@@ -1,192 +1,151 @@
 import React, { useState, useEffect } from 'react';
-import Header from './Header';
-import CardItem from './CardItem';
-import SelectedItemsPopup from './SelectedItemsPopup';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle';
 import '@fortawesome/fontawesome-free/css/all.css';
-
-const initialItems = [
-  { id: 1, name: 'Margherita Pizza', price: 24, image: '/Images/menu1.jpg'},
-  { id: 2, name: 'Mushroom Pizza', price: 25, image: '/Images/menu2.jpg' },
-  { id: 3, name: 'Hawaiian Pizza', price: 30, image: '/Images/menu3.jpg' },
-  { id: 4, name: 'Pesto Pizza', price: 30, image: '/Images/menu4.jpg' },
-];
+import Header from './Header';
+import SelectedItemsPopup from './SelectedItemsPopup';
+import CardItem from './CardItem';
 
 function App() {
-  const [cartItems, setCartItems] = useState([]);
+  const [cart, setCart] = useState({});
+  const [totalItems, setTotalItems] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
 
-  // Retrieve cart from localStorage on mount
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem('cartItems'));
-    if (storedCart) {
-      setCartItems(storedCart);
-    }
+    const storedCart = JSON.parse(localStorage.getItem('cart')) || {};
+    setCart(storedCart);
   }, []);
 
-  // Save cart to localStorage when cartItems change
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
-  }, [cartItems]);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    setTotalItems(Object.values(cart).reduce((sum, item) => sum + item.count, 0));
+  }, [cart]);
 
   const addToCart = (item) => {
-    const existingItem = cartItems.find(cartItem => cartItem.id === item.id);
-    if (existingItem) {
-      setCartItems(cartItems.map(cartItem =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      ));
+    const newCart = { ...cart };
+    if (newCart[item.id]) {
+      newCart[item.id].count += 1;
     } else {
-      setCartItems([...cartItems, { ...item, quantity: 1 }]);
+      newCart[item.id] = { ...item, count: 1 };
     }
+    setCart(newCart);
   };
 
-  const updateCart = (item, action) => {
-    const updatedCart = cartItems.map(cartItem => {
-      if (cartItem.id === item.id) {
-        return action === 'add'
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : { ...cartItem, quantity: cartItem.quantity - 1 };
-      }
-      return cartItem;
-    }).filter(cartItem => cartItem.quantity > 0);
-    setCartItems(updatedCart);
+  const handleQuantityChange = (id, delta) => {
+    const newCart = { ...cart };
+    newCart[id].count += delta;
+    if (newCart[id].count <= 0) {
+      delete newCart[id];
+    }
+    setCart(newCart);
   };
 
-  const openCart = () => {
-    setShowPopup(true);
-  };
-
-  const closeCart = () => {
-    setShowPopup(false);
+  const togglePopup = () => {
+    setShowPopup(!showPopup);
   };
 
   return (
     <>
-      {/* Navbar with Cart */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div className="container">
-          <a className="navbar-brand" href="#">Pizza House</a>
-          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-              <li className="nav-item">
-                <a className="nav-link active" href="#">Home</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">About us</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Contact</a>
-              </li>
-            </ul>
-            <form className="d-flex" role="search">
-              <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-              <button className="btn btn-danger" type="submit">
-                <i className="fa fa-search"></i>
-              </button>
-            </form>
-          </div>
-          {/* Cart Button */}
-          <button className="btn btn-danger position-relative" onClick={openCart}>
-            <i className="fa fa-shopping-cart"></i>
-            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning">
-              {cartItems.reduce((total, item) => total + item.quantity, 0)}
-            </span>
-          </button>
-        </div>
-      </nav>
-
-      {/* Carousel */}
-      <div id="carouselExampleCaptions" className="carousel slide" data-bs-ride="carousel">
-        <div className="carousel-indicators">
-          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" className="active" aria-current="true" aria-label="Slide 1"></button>
-          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
-          <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
-        </div>
-        <div className="carousel-inner">
-          <div className="carousel-item active">
-            <img src="./Images/pizza1.jpg" className="" alt="..." />
-            <div className="carousel-caption d-none d-md-block">
-              <h5>First slide label</h5>
-              <p>Some representative placeholder content for the first slide.</p>
-            </div>
-          </div>
-          <div className="carousel-item">
-            <img src="./Images/pizza2.jpg" className="" alt="..." />
-            <div className="carousel-caption d-none d-md-block">
-              <h5>Second slide label</h5>
-              <p>Some representative placeholder content for the second slide.</p>
-            </div>
-          </div>
-          <div className="carousel-item">
-            <img src="./Images/pizza3.jpg" className="" alt="..." />
-            <div className="carousel-caption d-none d-md-block">
-              <h5>Third slide label</h5>
-              <p>Some representative placeholder content for the third slide.</p>
-            </div>
-          </div>
-        </div>
-        <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
-          <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span className="visually-hidden">Previous</span>
-        </button>
-        <button className="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
-          <span className="carousel-control-next-icon" aria-hidden="true"></span>
-          <span className="visually-hidden">Next</span>
-        </button>
-      </div>
-
-      {/* Menu Section with Cart Functionality */}
-      <div className="container">
+      <Header totalItems={totalItems} togglePopup={togglePopup} />
+      <div className='container-fluid bg-dark text-white'>
         <div className="row">
-          <h2>Our Menu</h2>
-          {initialItems.map(item => (
-            <div className="col-md-3 mb-2" key={item.id}>
-              <CardItem item={item} addToCart={addToCart} />
+          <div className="col-lg-12 mb-5">
+            <div className='row'>
+              <div id="carouselExampleCaptions" className="carousel slide">
+                <div className="carousel-indicators">
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" className="active" aria-current="true" aria-label="Slide 1"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                  <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+                <div className="carousel-inner">
+                  <div className="carousel-item active">
+                    <img src="./Images/pizza1.jpg" className="d-block w-100" alt="..."/>
+                    <div className="carousel-caption d-none d-md-block">
+                      <h5>First slide label</h5>
+                      <p>Some representative placeholder content for the first slide.</p>
+                    </div>
+                  </div>
+                  <div className="carousel-item">
+                    <img src="./Images/pizza2.jpg" className="d-block w-100" alt="..."/>
+                    <div className="carousel-caption d-none d-md-block">
+                      <h5>Second slide label</h5>
+                      <p>Some representative placeholder content for the second slide.</p>
+                    </div>
+                  </div>
+                  <div className="carousel-item">
+                    <img src="./Images/pizza3.jpg" className="d-block w-100" alt="..."/>
+                    <div className="carousel-caption d-none d-md-block">
+                      <h5>Third slide label</h5>
+                      <p>Some representative placeholder content for the third slide.</p>
+                    </div>
+                  </div>
+                </div>
+                <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="prev">
+                  <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+                  <span className="visually-hidden">Previous</span>
+                </button>
+                <button className="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide="next">
+                  <span className="carousel-control-next-icon" aria-hidden="true"></span>
+                  <span className="visually-hidden">Next</span>
+                </button>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Booking Form */}
-      <div className="container">
-        <div className="row">
-          <h2 className="text-center">Book your Table</h2>
-          <div className="row mb-3">
-            <div className="col">
-              <input type="text" className="form-control" placeholder="Your name" />
-            </div>
-            <div className="col">
-              <input type="text" className="form-control" placeholder="Your email" />
-            </div>
-            <div className="col">
-              <select className="form-select">
-                <option selected>Select a Service</option>
-                <option>...</option>
-              </select>
+          <div className="col-lg-12 mb-5">
+            <div className="container">
+              <h2>Our Menu</h2>
+              <div className="row">
+                {[
+                  { id: 1, title: "Margherita Pizza", price: 24.00, imgSrc: "./Images/menu1.jpg" },
+                  { id: 2, title: "Mushroom Pizza", price: 25.00, imgSrc: "./Images/menu2.jpg" },
+                  { id: 3, title: "Hawaiian Pizza", price: 30.00, imgSrc: "./Images/menu3.jpg" },
+                  { id: 4, title: "Pesto Pizza", price: 30.00, imgSrc: "./Images/menu4.jpg" },
+                ].map(item => (
+                  <CardItem key={item.id} item={item} addToCart={addToCart} />
+                ))}
+              </div>
             </div>
           </div>
-          <div className="row mb-3">
-            <div className="col">
-              <textarea className="form-control" rows="5" placeholder="Please write your comment"></textarea>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col">
-              <input type="submit" className="btn btn-warning text-white" value="Send Message" />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Cart Popup */}
-      {showPopup && <SelectedItemsPopup cartItems={cartItems} closeCart={closeCart} updateCart={updateCart} />}
+          <div className="col-lg-12">
+            <div className="container">
+              <div className='row'>
+                <h2 className='text-center'>Book your Table</h2>
+                <div className="row mb-3">
+                  <div className="col">
+                    <input type="text" className="form-control" placeholder="Your name" aria-label="Your name" />
+                  </div>
+                  <div className="col">
+                    <input type="text" className="form-control" placeholder="Your email" aria-label="Your email" />
+                  </div>
+                  <div className="col">
+                    <select id="inputState" className="form-select">
+                      <option selected>Select a Service</option>
+                      <option>...</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="row mb-3">
+                  <div className="col">
+                    <textarea className="form-control" rows="5" placeholder="Please write your comment" aria-label="Please write your comment"></textarea>
+                  </div>
+                </div>
+                <div className="row">
+                  <div className="col">
+                    <input type='submit' className='btn btn-warning text-white' value="Send Message"></input>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+          </div>
+
+      {showPopup && (
+        <SelectedItemsPopup cart={cart} onClose={togglePopup} onQuantityChange={handleQuantityChange} />
+      )}
     </>
   );
 }
